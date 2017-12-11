@@ -26,8 +26,9 @@ example scgi-server on C++
 
 ## Как скомпилировать
 ```
-/lib/Makefile lib;
-/lib/Makefile project;
+cd lib
+Makefile lib
+Makefile project
 ```
 
 ## Конфигурация для http-сервера nginx 
