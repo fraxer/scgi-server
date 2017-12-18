@@ -55,6 +55,8 @@ using namespace std;
 
 int demonize();
 bool init(char*, u_short);
+const char* getValueFromMap(map<const char*, const char*>&, const char*);
+void setValueInMap(map<const char*, const char*>&, const char*, const char*);
 map<string, string> deserializeObject(const string&, const string&);
 vector< map<string, string> > deserializeArray(const string&);
 vector<string> deserializeSimpleArray(const string&);
@@ -65,8 +67,8 @@ const string& trim(string&);
 string ftos(double);
 
 struct cmp_str {
-    bool operator()(char const *a, char const *b) {
-        return strcmp(a, b) < 0;
+    bool operator()(const char *a, const char *b) {
+        return a < b;
     }
 };
 
@@ -174,12 +176,13 @@ class View {
         void setDescription(const string);
         void setRights(const map<string, vector<string>>&);
         bool hasRight(const string&, const string&);
-        inline string templ() {
+
+        virtual string& templ() {
             bool user_is_set = user.id.size() > 0;
 
             setWrapper();
 
-            return
+            string *s = new string(
                 "<!doctype html>"
                 "<html lang=\"ru\">"
                     "<head>"
@@ -288,7 +291,9 @@ class View {
                         "<script type=\"text/javascript\" src=\"/js/elemento.js\"></script>"
                         "<script type=\"text/javascript\" src=\"/templates/" + theme + "/js/test.js\"></script>"
                     "</body>"
-                "</html>";
+                "</html>");
+
+            return *s;
         };
         ~View();
 };
@@ -319,11 +324,11 @@ class Controller {
 
         string statusMessage;
 
-        string redirectUrl;
+        string *redirectUrl = nullptr;
 
         string moveUrl;
 
-        list <string> headers;
+        list<string> headers;
 
 	protected:
 		void addHeader(string);
@@ -333,16 +338,27 @@ class Controller {
 		map<string, vector<string>> right;
 
 	public:
-		Controller(){
+		Controller() {
 		    amount_posts = "20";
 		    statusCode = 200;
 		    statusMessage = "OK";
 		    fillRights();
+
+            // Writer w;
+            // w.writeInLog("controller init");
 		};
 
-		virtual ~Controller() {};
+		virtual ~Controller() {
+            
 
-        const char* setvalc(map<const char*, const char*, cmp_str>*, const string&);
+            if(redirectUrl != nullptr)
+                delete redirectUrl;
+
+            // Writer w;
+            // w.writeInLog("controller destroy");
+        };
+
+        const char* setvalc(map<const char*, const char*>*, const string&);
 
         string setval(map<string, const char*>*, const string&);
 
@@ -354,11 +370,13 @@ class Controller {
 
 		int parseData(const char*, const string&, unsigned int&, vector<$_FILE>&, vector<$_PARAM>&);
 
-		virtual string run(map<const char*, const char*, cmp_str>* parms){return "";};
+		virtual string& run(map<const char*, const char*>& parms) {
+            return *(new string());
+        };
 
 		void getHeaders(char* outBuffer);
 
-		string redirect(const short, const string, const string, const string);
+		string& redirect(const short, const string, const string, const string);
 
 		bool hasRight(const string&, const string&);
 

@@ -6,33 +6,27 @@
 #include "../viewhide.cpp"
 #include "../like.cpp"
 #include "../about.cpp"
-#include "../addcomment.cpp"
-#include "../getcomments.cpp"
+// #include "../addcomment.cpp"
+// #include "../getcomments.cpp"
 #include "../addnote.cpp"
-#include "../additem.cpp"
+// #include "../additem.cpp"
 #include "../uploadimage.cpp"
-#include "../uploadimageshop.cpp"
-#include "../uploadzip.cpp"
-#include "../shop.cpp"
-#include "../search.cpp"
-#include "../i.cpp"
-#include "../cart.cpp"
+// #include "../uploadimageshop.cpp"
+// #include "../uploadzip.cpp"
+// #include "../shop.cpp"
+// #include "../search.cpp"
+// #include "../i.cpp"
+// #include "../cart.cpp"
 #include "../login.cpp"
 #include "../logout.cpp"
-#include "../reg.cpp"
-#include "../order.cpp"
-#include "../404.cpp"
-#include "../post.cpp"
+// #include "../reg.cpp"
+// #include "../order.cpp"
+// #include "../404.cpp"
+// #include "../post.cpp"
 
 using namespace std;
 
 void setHandler(const char* document_uri, Controller** handler) {
-
-
-    // Writer w;
-
-    // w.writeInLog(to_string(strcmp(document_uri, "/404.d")));
-    // w.writeInLog(to_string(strcmp(document_uri, "/post.d")));
 
     if(strcmp(document_uri, "/index.d") == 0)                *handler = new IndexController();
     else if(strcmp(document_uri, "/viewpost.d") == 0)        *handler = new ViewPostController();
@@ -40,23 +34,23 @@ void setHandler(const char* document_uri, Controller** handler) {
     else if(strcmp(document_uri, "/viewhide.d") == 0)        *handler = new ViewHideController();
     else if(strcmp(document_uri, "/like.d") == 0)            *handler = new LikeController();
     else if(strcmp(document_uri, "/about.d") == 0)           *handler = new AboutController();
-    else if(strcmp(document_uri, "/addcomment.d") == 0)      *handler = new AddCommentController();
-    else if(strcmp(document_uri, "/getcomments.d") == 0)     *handler = new GetCommentsController();
+    // else if(strcmp(document_uri, "/addcomment.d") == 0)      *handler = new AddCommentController();
+    // else if(strcmp(document_uri, "/getcomments.d") == 0)     *handler = new GetCommentsController();
     else if(strcmp(document_uri, "/addnote.d") == 0)         *handler = new AddNoteController();
-    else if(strcmp(document_uri, "/additem.d") == 0)         *handler = new AddItemController();
+    // else if(strcmp(document_uri, "/additem.d") == 0)         *handler = new AddItemController();
     else if(strcmp(document_uri, "/uploadimage.d") == 0)     *handler = new UploadImageController();
-    else if(strcmp(document_uri, "/uploadimageshop.d") == 0) *handler = new UploadImageShopController();
-    else if(strcmp(document_uri, "/uploadzip.d") == 0)       *handler = new UploadZIPController();
-    else if(strcmp(document_uri, "/shop.d") == 0)            *handler = new ShopController();
-    else if(strcmp(document_uri, "/search.d") == 0)          *handler = new SearchController();
-    else if(strcmp(document_uri, "/i.d") == 0)               *handler = new IController();
-    else if(strcmp(document_uri, "/cart.d") == 0)            *handler = new CartController();
+    // else if(strcmp(document_uri, "/uploadimageshop.d") == 0) *handler = new UploadImageShopController();
+    // else if(strcmp(document_uri, "/uploadzip.d") == 0)       *handler = new UploadZIPController();
+    // else if(strcmp(document_uri, "/shop.d") == 0)            *handler = new ShopController();
+    // else if(strcmp(document_uri, "/search.d") == 0)          *handler = new SearchController();
+    // else if(strcmp(document_uri, "/i.d") == 0)               *handler = new IController();
+    // else if(strcmp(document_uri, "/cart.d") == 0)            *handler = new CartController();
     else if(strcmp(document_uri, "/login.d") == 0)           *handler = new LoginController();
     else if(strcmp(document_uri, "/logout.d") == 0)          *handler = new LogoutController();
-    else if(strcmp(document_uri, "/reg.d") == 0)             *handler = new RegController();
-    else if(strcmp(document_uri, "/order.d") == 0)           *handler = new OrderController();
-    else if(strcmp(document_uri, "/404.d") == 0)             *handler = new NotFoundController();
-    else if(strcmp(document_uri, "/post.d") == 0)            *handler = new PostController();
+    // else if(strcmp(document_uri, "/reg.d") == 0)             *handler = new RegController();
+    // else if(strcmp(document_uri, "/order.d") == 0)           *handler = new OrderController();
+    // else if(strcmp(document_uri, "/404.d") == 0)             *handler = new NotFoundController();
+    // else if(strcmp(document_uri, "/post.d") == 0)            *handler = new PostController();
 }
 
 void Writer::writeInLog(string message) {
@@ -90,7 +84,31 @@ short number_digits(int n) {
     return count;
 };
 
-bool parseInputString(char* buff, map<const char*, const char*, cmp_str>& parms) {
+
+// map<const char*, const char*>::iterator findValueInMap(map<const char*, const char*>& parms, const char* key) {
+const char* getValueFromMap(map<const char*, const char*>& parms, const char* key) {
+    for (map<const char*, const char*>::iterator it = parms.begin(); it!=parms.end(); ++it) {
+        if(strcmp(it->first, key) == 0) {
+            return it->second;
+        }
+    }
+    return "";
+};
+
+void setValueInMap(map<const char*, const char*>& parms, const char* key, const char* value) {
+    for (map<const char*, const char*>::iterator it = parms.begin(); it != parms.end(); ++it) {
+        if(strcmp(it->first, key) == 0) {
+             it->second = value;
+             return;
+        }
+    }
+};
+
+bool parseInputString(char* buff, map<const char*, const char*>& parms) {
+
+    // Writer w;
+
+    // w.writeInLog("p1");
 
     char* p = (char*)memchr(buff, ':', 30);
 
@@ -130,12 +148,67 @@ bool parseInputString(char* buff, map<const char*, const char*, cmp_str>& parms)
         g += l;
     }
 
-    len = atoi(parms.find("CONTENT_LENGTH")->second);
+    len = atoi(getValueFromMap(parms, "CONTENT_LENGTH"));
 
-    if(len > 0)
-        parms.emplace("DATA", ++p);
+    if(len > 0) {
+        ++p;
+        strncpy(p+len, "\0", 1);
+        parms.emplace("DATA", p);
+    }
 
     return true;
+}
+
+unsigned long long getInputLength(char* buff) {
+
+    unsigned long long full_length = 0;
+
+    char* p = (char*)memchr(buff, ':', 30);
+
+    if(p == NULL) {
+        Writer w;
+        w.writeInLog("can't parse string");
+        return false;
+    }
+
+    char value[p-buff];
+
+    full_length += p-buff;
+
+    strncpy(value, buff, p-buff);
+
+    value[p-buff] = '\0';
+
+    int len = atoi(value);
+
+    full_length += len + 2;
+
+    p++;
+
+    int g = 0;
+
+    int l = 0;
+
+    char* n;
+
+    while(g < len) {
+        n = p;
+
+        l = strlen(p) + 1;
+        p += l;
+        g += l;
+
+        if(strcmp(n, "CONTENT_LENGTH") == 0) {
+            full_length += atoi(p);
+            break;
+        }
+
+        l = strlen(p) + 1;
+        p += l;
+        g += l;
+    }
+
+    return full_length;
 }
 
 map<string, string> deserializeObject(const string& str, const string& prop = "") {
@@ -477,6 +550,8 @@ void on_connect(evutil_socket_t fd, short event, void *arg) {
 
     bool get_data = false;
 
+    unsigned long long full_length = 0;
+
     while(len_recv = recv(sock, &message, BUFSIZ, MSG_DONTWAIT)) {
         
         if(len_recv < 0) {
@@ -523,7 +598,7 @@ void on_connect(evutil_socket_t fd, short event, void *arg) {
             }
             if(errno == EAGAIN) {
 
-                if(get_data)
+                if(get_data && full_length == slen)
                     break;
 
                 // s_recv = string("EAGAIN: ") + strerror(errno);
@@ -534,7 +609,7 @@ void on_connect(evutil_socket_t fd, short event, void *arg) {
             if(errno == EWOULDBLOCK) {
                 
                
-                if(get_data)
+                if(get_data && full_length == slen)
                     break;
                 
                 // s_recv = string("EWOULDBLOCK: ") + strerror(errno);
@@ -546,21 +621,25 @@ void on_connect(evutil_socket_t fd, short event, void *arg) {
             break;
         }
         else {
-
-            get_data = true;
             
-            // w.writeInLog("data_size: " + to_string(data_size));
+            // w.writeInLog("get data");
             // w.writeInLog("slen: " + to_string(slen));
             // w.writeInLog("len_recv: " + to_string(len_recv));
-            
+
             if(data_size < slen + len_recv) {
                 data_size += len_recv;
                 data = (char*)realloc(data, data_size);
             }
 
+            if(!get_data) {
+                full_length = getInputLength(message);
+            }
+
             memmove(data + slen, &message, len_recv);
 
             slen += len_recv;
+
+            get_data = true;
         }
     }
 
@@ -576,8 +655,7 @@ void on_connect(evutil_socket_t fd, short event, void *arg) {
 //    myfile.close();
 // }
 
-
-    map<const char*, const char*, cmp_str> parms;
+    map<const char*, const char*> parms;
 
     if(!parseInputString(data, parms)) {
         free(data);
@@ -585,8 +663,7 @@ void on_connect(evutil_socket_t fd, short event, void *arg) {
         return;
     }
 
-
-    int content_length = atoi(parms.find("CONTENT_LENGTH")->second);
+    int content_length = atoi(getValueFromMap(parms, "CONTENT_LENGTH"));
 
     if(BUFFSIZE < content_length) {
         char out_data[38];
@@ -608,11 +685,10 @@ void on_connect(evutil_socket_t fd, short event, void *arg) {
     char    statusMsg[10];
     unsigned int contentLength = 0;
     char    headersOutBuff[1024];
-            headersOutBuff[0] = '\0';
 
     Controller* handler = nullptr;
 
-    const char* document_uri = parms.find("DOCUMENT_URI")->second;
+    char* document_uri = (char*)getValueFromMap(parms, "DOCUMENT_URI");
 
     setHandler(document_uri, &handler);
 
@@ -630,42 +706,110 @@ void on_connect(evutil_socket_t fd, short event, void *arg) {
 
     } else {
 
-        const char* handler_data = handler->run(&parms).c_str();
+        string *s = &handler->run(parms);
+
+        const char* handler_data = s->c_str();
+
+        // Writer w;
+        // w.writeInLog("0---");
+        // w.writeInLog(document_uri);
+        // w.writeInLog("1---");
+        // w.writeInLog(*s);
+        // w.writeInLog("2---");
+        // w.writeInLog(handler_data);
+        // w.writeInLog("3---");
 
         statusCode = handler->statusCode;
 
         strcpy(statusMsg, handler->statusMessage.c_str());
 
-        if(statusCode == 301 || statusCode == 302) {
-            parms.find("DOCUMENT_URI")->second = handler->redirectUrl.c_str();
-            parms.find("REQUEST_METHOD")->second = "GET";
+        // Writer w;
+        // w.writeInLog("1");
 
-            document_uri = parms.find("DOCUMENT_URI")->second;
+        if(statusCode == 301 || statusCode == 302) {
+
+            char document_uri_buffer[128];
+
+            unsigned short document_uri_buffer_length = strlen(handler->redirectUrl->c_str()) > 128 ? 128 : strlen(handler->redirectUrl->c_str());
+
+            strncpy(document_uri_buffer, handler->redirectUrl->c_str(), document_uri_buffer_length+1);
+
+            document_uri_buffer[document_uri_buffer_length] = '\0';
+
+            document_uri = document_uri_buffer;
+
+            setValueInMap(parms, "DOCUMENT_URI", document_uri);
+            setValueInMap(parms, "REQUEST_METHOD", "GET");
+
+            // w.writeInLog(document_uri);
 
             statusCode = handler->statusCode;
 
-            list <string> headers;
+            list<string> headers;
+
+            char header[512];
 
             while(handler->headers.size() > 0) {
-                headers.push_back(handler->headers.back());
+
+                unsigned short header_length = strlen(handler->headers.back().c_str()) > 512 ? 512 : strlen(handler->headers.back().c_str());
+
+                strncpy(header, handler->headers.back().c_str(), header_length+1);
+
+                header[header_length] = '\0';
+
+                headers.push_back(header);
+
                 handler->headers.pop_back();
             }
 
-            statusMsg[0] = '\0';
+            // for (list<string>::iterator it=headers.begin(); it != headers.end(); ++it)
+                // w.writeInLog(*it);
+
+
             strcpy(statusMsg, handler->statusMessage.c_str());
+
+            // w.writeInLog("1.2");
+
+            delete s;
+
+            // w.writeInLog("1.3");
 
             delete handler;
 
+            // w.writeInLog("1.4");
+
             setHandler(document_uri, &handler);
+
+            // w.writeInLog("1.4.1");
+
+            // w.writeInLog(document_uri);
+
+            // w.writeInLog("1.4.2");
+
+            // for (list<string>::iterator it=headers.begin(); it != headers.end(); ++it)
+                // w.writeInLog(*it);
+
+            // w.writeInLog("1.4.3");
 
             while(headers.size() > 0) {
                 handler->headers.push_back(headers.back());
                 headers.pop_back();
             }
 
-            handler_data = handler->run(&parms).c_str();
+            // w.writeInLog("1.5");
+
+            s = &handler->run(parms);
+
+            // w.writeInLog("1.6");
+
+            handler_data = s->c_str();
+
+            // w.writeInLog("1.7");
+
             handler->headers.unique();
         }
+
+        // w.writeInLog("2");
 
         contentLength = strlen(handler_data);
 
@@ -678,9 +822,13 @@ void on_connect(evutil_socket_t fd, short event, void *arg) {
 
         send(sock, out_data, strlen(out_data), MSG_DONTWAIT);
 
+        delete s;
+
+        // w.writeInLog("3");
+
         delete handler;
 
-        handler = nullptr;
+        // handler = nullptr;
     }
 
     free(data);
@@ -828,17 +976,17 @@ int demonize() {
     return pid;
 };
 
-string Controller::redirect(const short code, const string message, const string url, const string move) {
+string& Controller::redirect(const short code, const string message, const string url, const string move) {
     statusCode = code;
     statusMessage = message;
-    redirectUrl = url;
+    redirectUrl = new string(url);
     moveUrl = move;
     addHeader("Location: " + move);
-    return "";
+    return *(new string());
 };
 
-const char* Controller::setvalc(map<const char*, const char*, cmp_str>* data, const string& value) {
-	map<const char*, const char*, cmp_str>::iterator it = data->find(value.c_str());
+const char* Controller::setvalc(map<const char*, const char*>* data, const string& value) {
+	map<const char*, const char*>::iterator it = data->find(value.c_str());
 
 	if (it != data->end())
 		return (*it).second;

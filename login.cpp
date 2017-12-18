@@ -1,7 +1,8 @@
 class LoginView : public View {
     public:
-        inline string templ() {
-            return
+        string& templ() {
+
+            string *s = new string(
                 "<!doctype html>"
                 "<html>"
                     "<head>"
@@ -32,7 +33,10 @@ class LoginView : public View {
                             "</form>"
                         "</div>"
                     "</body>"
-                "</html>";
+                "</html>");
+
+
+            return *s;
         };
 };
 
@@ -236,7 +240,7 @@ class LoginModel : public Model {
 
 class LoginController: public Controller {
     public:
-        string getResForGET(map<const char*, const char*, cmp_str>* parms) {
+        string& getResForGET(map<const char*, const char*>& parms) {
 
             addHeader("Content-Type:text/html; charset=UTF-8");
 
@@ -245,9 +249,9 @@ class LoginController: public Controller {
             return view.templ();
         }
 
-        string getResForPOST(map<const char*, const char*, cmp_str>* parms) {
+        string& getResForPOST(map<const char*, const char*>& parms) {
 
-            map<string, string> data = parseQuery(setvalc(parms, "DATA"));
+            map<string, string> data = parseQuery(getValueFromMap(parms, "DATA"));
 
             string login    = urldecode(setval(&data, "login"));
             string password = urldecode(setval(&data, "pass"));
@@ -293,11 +297,9 @@ class LoginController: public Controller {
             return view.templ();
         }
 
-        string run(map<const char*, const char*, cmp_str>* parms) {
-            string method = setvalc(parms, "REQUEST_METHOD");
+        string& run(map<const char*, const char*>& parms) {
+            string method = getValueFromMap(parms, "REQUEST_METHOD");
 
-            if(method == "GET")
-                return getResForGET(parms);
             if(method == "POST")
                 return getResForPOST(parms);
 

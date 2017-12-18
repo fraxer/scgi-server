@@ -207,12 +207,12 @@ class AddNoteModel : public Model {
                     "`content` "
                 "WHERE "
                     "`id_parent` = " + post_id + " AND `type` <> 0 "
-//                "LIMIT 1"
+                // "LIMIT 1"
             );
 
             int size = mysql_num_rows(res);
 
-//            mysql_free_result(res);
+            // mysql_free_result(res);
 
             if(size <= 1) {
                 mysql_free_result(res);
@@ -230,7 +230,7 @@ class AddNoteModel : public Model {
             else {
                 // На будущее обновлять пост, чтобы отображал несколько картинок
 
-//                row = mysql_fetch_row(res);
+                // row = mysql_fetch_row(res);
 
                 string id;
                 string param;
@@ -318,9 +318,9 @@ class AddNoteModel : public Model {
 
 class AddNoteController: public Controller {
     public:
-        string getResForGET(map<const char*, const char*, cmp_str>* parms) {
+        string& getResForGET(map<const char*, const char*>& parms) {
 
-            map<string, string> COOKIE = parseCookie(setvalc(parms, "HTTP_COOKIE"));
+            map<string, string> COOKIE = parseCookie(getValueFromMap(parms, "HTTP_COOKIE"));
 
             string user_id = setval(&COOKIE, "id");
 
@@ -339,23 +339,23 @@ class AddNoteController: public Controller {
             {
                 user = model.getDataUser(user_id, user_token);
                 if(user.id.size() == 0 || !hasRight(user.role, "addNote"))
-                    return "{\"status\":\"0\"}";
+                    return *(new string("{\"status\":\"0\"}"));
             }
             else
-                return "{\"status\":\"0\"}";
+                return *(new string("{\"status\":\"0\"}"));
 
-            string ajax_request = setvalc(parms, "HTTP_AJAX_REQUEST");
+            string ajax_request = getValueFromMap(parms, "HTTP_AJAX_REQUEST");
 
             if(ajax_request.size() > 0 && ajax_request == "xmlhttprequest") {
-                return "{\"status\":\"1\"}";
+                return *(new string("{\"status\":\"1\"}"));
             }
 
-            return "{\"status\":\"0\"}";
+            return *(new string("{\"status\":\"0\"}"));
         }
 
-        string getResForPOST(map<const char*, const char*, cmp_str>* parms) {
+        string& getResForPOST(map<const char*, const char*>& parms) {
 
-            map<string, string> COOKIE = parseCookie(setvalc(parms, "HTTP_COOKIE"));
+            map<string, string> COOKIE = parseCookie(getValueFromMap(parms, "HTTP_COOKIE"));
 
             string user_id = setval(&COOKIE, "id");
 
@@ -373,12 +373,12 @@ class AddNoteController: public Controller {
             if(user_id.size() > 0 && user_token.size() > 0)
                 user = model.getDataUser(user_id, user_token);
             else
-                return "{\"status\":\"0\"}";
+                return *(new string("{\"status\":\"0\",\"message\":\"user unauthorized\"}"));
 
             if(!hasRight(user.role, "addNote"))
-                return "{\"status\":\"0\"}";
+                return *(new string("{\"status\":\"0\",\"message\":\"insufficient rights\"}"));
 
-            map<string, string> data = parseQuery(setvalc(parms, "DATA"));
+            map<string, string> data = parseQuery(getValueFromMap(parms, "DATA"));
 
             string adder_id = setval(&data, "ai");
             if( strspn( adder_id.c_str(), "0123456789" ) != adder_id.size() )
@@ -389,20 +389,21 @@ class AddNoteController: public Controller {
                 adder_type = "";
 
             if(adder_id.size() == 0 || adder_type.size() == 0)
-                return "{\"status\":\"0\"}";
+                return *(new string("{\"status\":\"0\",\"message\":\"empty adder_id or adder_type\"}"));
 
             if(adder_type == "0" && adder_id == user_id) {
                 vector<ImageParams> image_params;
 
                 model.publishPost(setval(&data, "text"), adder_id, adder_type, image_params);
 
-                buildGrid(image_params);
+                if(image_params.size() > 0)
+                    buildGrid(image_params);
             }
-//            if(adder_type == "1") {
-//
-//            }
+            // if(adder_type == "1") {
 
-            return "";
+            // }
+
+            return *(new string);
         }
 
         vector<bool> getSequenceOrientationImages(const vector<ImageParams>& image_params) {
@@ -432,24 +433,24 @@ class AddNoteController: public Controller {
             int tHeight = 170;
             short count_l = count - 1;
 
-//            Writer ww;
+            // Writer ww;
 
             for(short p = start; p < count; p++) {
                 blockWidth -= 6;
                 tWidth += round((float)(tHeight * image_params[p].width) / (float)image_params[p].height);
 
-//                ww.writeInLog("imwidth: " +  to_string(image_params[p].width) + ", imheight: " + to_string(image_params[p].height) );
+                // ww.writeInLog("imwidth: " +  to_string(image_params[p].width) + ", imheight: " + to_string(image_params[p].height) );
 
-//                ww.writeInLog("round_" + to_string(p) + ": " + to_string(round((float)(tHeight * image_params[p].width) / (float)image_params[p].height)) );
+                // ww.writeInLog("round_" + to_string(p) + ": " + to_string(round((float)(tHeight * image_params[p].width) / (float)image_params[p].height)) );
             }
 
-//            ww.writeInLog("tWidth: " + to_string(tWidth) );
+            // ww.writeInLog("tWidth: " + to_string(tWidth) );
 
             float k = (float)blockWidth / (float)tWidth;
             short imWidth = blockWidth;
 
 
-//            ww.writeInLog("tHeight: " + to_string(tHeight) + ", k: " + to_string(k) + ", floor: " + to_string(floor(tHeight * k)));
+            // ww.writeInLog("tHeight: " + to_string(tHeight) + ", k: " + to_string(k) + ", floor: " + to_string(floor(tHeight * k)));
 
             tHeight = floor(tHeight * k);
 
@@ -473,16 +474,16 @@ class AddNoteController: public Controller {
             string inf  = folder + ipath;
             string outf = folder + opath;
 
-            IplImage* image = cvLoadImage(inf.c_str(), 1);
+            cv::Mat image = cv::imread(inf.c_str(), cv::IMREAD_COLOR);
 
-            int width = w;
-            int height = h;
+            cv::Mat destination = cv::Mat::zeros(cv::Size(w,h), CV_64FC1);
 
-            IplImage *destination = cvCreateImage( cvSize(width , height), image->depth, image->nChannels);
-            cvResize(image, destination, cv::INTER_AREA);
-            cvSaveImage(outf.c_str(), destination);
-            cvReleaseImage(&image);
-            cvReleaseImage(&destination);
+            cv::resize(image, destination, cv::Size(w, h), 0, 0, cv::INTER_AREA);
+
+            cv::imwrite(outf.c_str(), destination);
+
+            image.release();
+            destination.release();
         }
 
         void buildGrid(const vector<ImageParams>& image_params) {
@@ -536,8 +537,8 @@ class AddNoteController: public Controller {
 
         }
 
-        string run(map<const char*, const char*, cmp_str>* parms) {
-            string method = setvalc(parms, "REQUEST_METHOD");
+        string& run(map<const char*, const char*>& parms) {
+            string method = getValueFromMap(parms, "REQUEST_METHOD");
 
             if(method == "GET")
                 return getResForGET(parms);
@@ -545,6 +546,6 @@ class AddNoteController: public Controller {
             if(method == "POST")
                 return getResForPOST(parms);
 
-            return "{\"status\":\"0\"}";
+            return *(new string("{\"status\":\"0\"}"));
         }
 };

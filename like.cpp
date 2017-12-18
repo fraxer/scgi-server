@@ -1,6 +1,6 @@
 class LikeModel : public Model {
     public:
-        void getData(const string& id_content, const string& type_content, const string& id_user, string& flag) {
+        void getData(const string& id_content, const string& type_content, const string& id_user, string *flag) {
             string table = "";
 
             if(type_content == "0")
@@ -61,7 +61,7 @@ class LikeModel : public Model {
 
                      );
 
-                    flag = (is_like == "0") ? "off" : "on";
+                    *flag = (is_like == "0") ? "off" : "on";
                 }
                 else
                 {
@@ -71,49 +71,49 @@ class LikeModel : public Model {
                         "(`id_content`, `type_content`, `id_user`) VALUES (" + id_content + ", " + type_content + ", " + id_user + ")"
                     );
 
-                    flag = "on";
+                    *flag = "on";
                 }
             }
 
             mysql_free_result(res);
         };
 
-        string getDataLike(const string& id_content, const string& type_content, const string& id_user) {
-            string flag;
+        string& getDataLike(const string& id_content, const string& type_content, const string& id_user) {
+            string *flag = new string();
 
             getData(id_content, type_content, id_user, flag);
 
-            return flag;
+            return *flag;
         };
 };
 
 class LikeController: public Controller {
     public:
-        string run(map<const char*, const char*, cmp_str>* parms) {
-            if(strcmp(setvalc(parms, "REQUEST_METHOD"), "GET") != 0)
-                return "";
+        string& run(map<const char*, const char*>& parms) {
+            if(strcmp(getValueFromMap(parms, "REQUEST_METHOD"), "GET") != 0)
+                return *(new string);
 
             addHeader("X-Accel-Expires: 0");
 
-            map<string, string> GET = parseQuery(setvalc(parms, "QUERY_STRING"));
+            map<string, string> GET = parseQuery(getValueFromMap(parms, "QUERY_STRING"));
 
             string post_id = setval(&GET, "id");
             if( !post_id.size() || strspn( post_id.c_str(), "0123456789" ) != post_id.size() )
-                return "";
+                return *(new string);
 
             string post_type = setval(&GET, "type");
             if( !post_type.size() || strspn( post_type.c_str(), "0123456789" ) != post_type.size() )
-                return "";
+                return *(new string);
 
-            map<string, string> COOKIE = parseCookie(setvalc(parms, "HTTP_COOKIE"));
+            map<string, string> COOKIE = parseCookie(getValueFromMap(parms, "HTTP_COOKIE"));
 
             string user_id = setval(&COOKIE, "id");
             if( strspn( user_id.c_str(), "0123456789" ) != user_id.size() )
-                return "";
+                return *(new string);
 
             string user_token = setval(&COOKIE, "token");
             if( strspn( user_token.c_str(), "0123456789abcdefghijklmnopqrstuvwxyz" ) != user_token.size() )
-                return "";
+                return *(new string);
 
             LikeModel model;
             User user;
@@ -121,7 +121,7 @@ class LikeController: public Controller {
             if(user_id.size() > 0 && user_token.size() > 0)
                 user = model.getDataUser(user_id, user_token);
             else
-                return "";
+                return *(new string);
 
             return model.getDataLike(post_id, post_type, user.id);
         }

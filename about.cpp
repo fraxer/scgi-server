@@ -215,13 +215,13 @@ class AboutView : public View {
 
 class AboutController: public Controller {
     public:
-        string run(map<const char*, const char*, cmp_str>* parms) {
-            if(strcmp(setvalc(parms, "REQUEST_METHOD"), "GET") != 0)
-                return "";
+        string& run(map<const char*, const char*>& parms) {
+            if(strcmp(getValueFromMap(parms, "REQUEST_METHOD"), "GET") != 0)
+                return *(new string);
 
             addHeader("Content-Type:text/html; charset=UTF-8");
 
-            map<string, string> COOKIE = parseCookie(setvalc(parms, "HTTP_COOKIE"));
+            map<string, string> COOKIE = parseCookie(getValueFromMap(parms, "HTTP_COOKIE"));
 
             string user_id = setval(&COOKIE, "id");
 
@@ -246,17 +246,17 @@ class AboutController: public Controller {
 
             view.setContent();
 
-            string ajax_request = setvalc(parms, "HTTP_AJAX_REQUEST");
+            const char* har = getValueFromMap(parms, "HTTP_AJAX_REQUEST");
 
-            if(ajax_request.size() > 0 && ajax_request == "xmlhttprequest")
-            {
+            if(strlen(har) > 0 && strcmp(har, "xmlhttprequest") == 0) {
                 string inside_content = view.getInsideContent();
 
-                return
+                return *(new string(
                     "{"
                        "\"data\":\"" + model.back_slash(inside_content) + "\","
                        "\"user\":" + (user.id.size() > 0 ? "" + user.id + "" : "\"0\"") +
-                   "}";
+                    "}"
+                ));
             }
 
             view.setTitle("Diginterest - статьи, идеи, макеты, работы");

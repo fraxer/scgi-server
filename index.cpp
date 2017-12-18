@@ -114,7 +114,7 @@ class IndexModel : public Model {
 
         };
 
-        string getJSON(const string& start, const User& user, const bool& canAddNote) {
+        string& getJSON(const string& start, const User& user, const bool& canAddNote) {
             getData(start, user);
 
             bool user_is_set = user.id.size() > 0;
@@ -128,14 +128,14 @@ class IndexModel : public Model {
             while(res != NULL && (row = mysql_fetch_row(res)) != NULL)
             {
                 str += "{"
-                    "\"id\":" + (string)row[0] + ","
-                    "\"param\":" + (strlen(row[1]) > 0 ? (string)row[1] : "\"\"") + ","
-                    "\"desc\":\"" + (string)row[2] + "\","
-                    "\"adder_id\":\"" + (string)row[3] + "\","
-                    "\"adder_name\":\"" + (string)row[4] + "\","
-                    "\"adder_avatar\":\"" + (string)row[5] + "\","
-                    "\"amount_comments\":" + (string)row[6] + ","
-                    "\"amount_like\":" + (string)row[7] + ","
+                    "\"id\":" + string(row[0]) + ","
+                    "\"param\":" + (strlen(row[1]) > 0 ? row[1] : "\"\"") + ","
+                    "\"desc\":\"" + row[2] + "\","
+                    "\"adder_id\":\"" + row[3] + "\","
+                    "\"adder_name\":\"" + row[4] + "\","
+                    "\"adder_avatar\":\"" + row[5] + "\","
+                    "\"amount_comments\":" + row[6] + ","
+                    "\"amount_like\":" + row[7] + ","
                     "\"like\":" + (user_is_set ? row[8] : "0") + ""
                 "}" + ((i++ == size_l) ? "" : ",");
             }
@@ -144,14 +144,14 @@ class IndexModel : public Model {
 
             str += "]";
 
-            string obj =
+            string *obj = new string(
             "{"
                 "\"data\":" + str + ","
                 "\"user\":" + (user_is_set ? "" + user.id + "" : "\"0\"") + ","
                 "\"right\":[" + (canAddNote ? "\"addNote\"" : "") + "]" +
-            "}";
+            "}");
 
-            return obj;
+            return *obj;
         };
 };
 
@@ -161,9 +161,9 @@ class IndexController: public Controller {
             fillRights();
         }
 
-        string run(map<const char*, const char*, cmp_str>* parms) {
-            if(strcmp(setvalc(parms, "REQUEST_METHOD"), "GET") != 0)
-                return "";
+        string& run(map<const char*, const char*>& parms) {
+            if(strcmp(getValueFromMap(parms, "REQUEST_METHOD"), "GET") != 0)
+                return *(new string);
 
             addHeader("Content-Type:text/html; charset=UTF-8");
 
@@ -172,8 +172,8 @@ class IndexController: public Controller {
             User user;
 //            addHeader("Set-Cookie: name=q; path=/;");
 
-            map<string, string> GET = parseQuery(setvalc(parms, "QUERY_STRING"));
-            map<string, string> COOKIE = parseCookie(setvalc(parms, "HTTP_COOKIE"));
+            map<string, string> GET = parseQuery(getValueFromMap(parms, "QUERY_STRING"));
+            map<string, string> COOKIE = parseCookie(getValueFromMap(parms, "HTTP_COOKIE"));
 
             string start = setval(&GET, "start");
             if( !start.size() || strspn( start.c_str(), "0123456789" ) != start.size() )
@@ -194,14 +194,15 @@ class IndexController: public Controller {
                 view.setUser(user);
             }
 
-            string ajax_request = setvalc(parms, "HTTP_AJAX_REQUEST");
+            const char* har = getValueFromMap(parms, "HTTP_AJAX_REQUEST");
 
-            bool canAddNote = hasRight(user.role, "addNote");
+            if(strlen(har) > 0 && strcmp(har, "xmlhttprequest") == 0) {
+                bool canAddNote = hasRight(user.role, "addNote");
 
-            if(ajax_request.size() > 0 && ajax_request == "xmlhttprequest")
-            {
                 return model.getJSON(start, user, canAddNote);
             }
+
+            
 
             view.setTitle("Новостная лента");
             view.setDescription("IT новости, статьи, идеи, макеты, работы.");

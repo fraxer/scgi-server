@@ -99,9 +99,9 @@ class ViewContentModel : public Model {
             return str;
         };
 
-        string getJSON(const string& id, const string& type, const string& start, const string& count, const User& user) {
+        string& getJSON(const string& id, const string& type, const string& start, const string& count, const User& user) {
             if(!getData(id, type, start, count, user)) {
-                return "[[],[]]";
+                return *(new string("[[],[]]"));
             }
 
             bool user_is_set = user.id.size() > 0;
@@ -179,27 +179,28 @@ class ViewContentModel : public Model {
 
             comments += "]";
 
-            string json =
-            "["
-                + str + ","
-                + comments
-                + (user_is_set ? ",{\"user\":" + user.id + "}" : "") +
-            "]";
+            string *json = new string(
+                "["
+                    + str + ","
+                    + comments
+                    + (user_is_set ? ",{\"user\":" + user.id + "}" : "") +
+                "]"
+            );
 
-            return json;
+            return *json;
         };
 };
 
 class ViewContentController: public Controller {
     public:
-        string run(map<const char*, const char*, cmp_str>* parms) {
-            if(strcmp(setvalc(parms, "REQUEST_METHOD"), "GET") != 0)
-                return "";
+        string& run(map<const char*, const char*>& parms) {
+            if(strcmp(getValueFromMap(parms, "REQUEST_METHOD"), "GET") != 0)
+                return *(new string);
 
             addHeader("Content-Type:text/html; charset=UTF-8");
 
-            map<string, string> GET = parseQuery(setvalc(parms, "QUERY_STRING"));
-            map<string, string> COOKIE = parseCookie(setvalc(parms, "HTTP_COOKIE"));
+            map<string, string> GET = parseQuery(getValueFromMap(parms, "QUERY_STRING"));
+            map<string, string> COOKIE = parseCookie(getValueFromMap(parms, "HTTP_COOKIE"));
 
             string start = setval(&GET, "start");
 
@@ -208,11 +209,11 @@ class ViewContentController: public Controller {
 
             string post_id = setval(&GET, "id");
             if( !post_id.size() || strspn( post_id.c_str(), "0123456789" ) != post_id.size() || stoi(post_id) == 0 )
-                return "";
+                return *(new string);
 
             string post_type = setval(&GET, "type");
             if( !post_type.size() || strspn( post_type.c_str(), "0123456789" ) != post_type.size() )
-                return "";
+                return *(new string);
 
             string user_id = setval(&COOKIE, "id");
             if( strspn( user_id.c_str(), "0123456789" ) != user_id.size() )

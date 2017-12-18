@@ -137,33 +137,33 @@ class UploadImageController: public Controller {
             }
         }
 
-        string getResForPOST(map<const char*, const char*, cmp_str>* parms, UploadImageModel& model, User& user) {
+        string& getResForPOST(map<const char*, const char*>& parms, UploadImageModel& model, User& user) {
 
             if(!model.hasPlace(user.id))
-                return "{\"error\":\"no free space\"}";
+                return *(new string("{\"error\":\"no free space\"}"));
 
-            string content_type = setvalc(parms, "CONTENT_TYPE");
+            string content_type = getValueFromMap(parms, "CONTENT_TYPE");
 
             unsigned int mpdindex = content_type.find("form-data;");
 
             if(mpdindex != 10)
-                return "{\"access\":\"denied\"}";
+                return *(new string("{\"access\":\"denied\"}"));
 
             unsigned int bndindex = content_type.find("boundary=");
             string boundary = "--" + content_type.substr(bndindex+9);
 
-            const char* data = setvalc(parms, "DATA");
+            const char* data = getValueFromMap(parms, "DATA");
 
-            unsigned int len = atoi(setvalc(parms, "CONTENT_LENGTH"));
+            unsigned int len = atoi(getValueFromMap(parms, "CONTENT_LENGTH"));
 
-//            ofstream myfile;
-//            myfile.open("upl.bin", ios::out | ios::binary);
-//
-//            if (myfile.is_open())
-//            {
-//                myfile.write(data, len);
-//                myfile.close();
-//            }
+            // ofstream myfile;
+            // myfile.open("upl.bin", ios::out | ios::binary);
+
+            // if (myfile.is_open())
+            // {
+            //     myfile.write(data, len);
+            //     myfile.close();
+            // }
 
 //            return "stop";
 
@@ -173,21 +173,21 @@ class UploadImageController: public Controller {
             int s = parseData(data, boundary, len, FILES, PARAMS);
 
             if(s==0)
-                return "error read file";
+                return *(new string("error read file"));
 
             random_device rd;
             mt19937 rng(rd());
             uniform_int_distribution<int> uni(0, 61);
             string chrs = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            string json;
+            string *json = new string();
 
             int fsize = FILES.size();
             int size_l = fsize-1;
 
             if(fsize == 0)
-                return json;
+                return *json;
 
-            json += "[";
+            *json = "[";
 
             for(int o = 0; o < fsize; o++) {
                 string _s = (o == size_l) ? "" : ",";
@@ -197,7 +197,6 @@ class UploadImageController: public Controller {
                     name_rand += chrs[uni(rng)];
 
                 string ext;
-//                string content_type = "image"; // image
                 content_type = "2";
 
                 if(FILES[o].type == "image/jpeg")
@@ -222,8 +221,8 @@ class UploadImageController: public Controller {
                 writeFile(url_o, FILES[o]);
 
                 resizeImage(url_o, url_m, 1000, img_width, img_height);
-                resizeImage(url_m, url_s, 512);
-//                resizeImage(url_s, url_mob, 150);
+                resizeImage(url_o, url_s, 512);
+                resizeImage(url_o, url_mob, 150);
 
                 string obj = "{"
                     "\"s\":\"" +    folder_content + string("/s/") + name_rand + ext   +   "\","
@@ -239,63 +238,72 @@ class UploadImageController: public Controller {
                 if(post_id == "0")
                     post_id = model.reservePlace(user.id);
 
-                json += "{" +
+                *json += "{" +
                     model.addContent(post_id, content_type, obj) + ","
                     "\"url\":\"" + folder_content + string("/s/") + name_rand + ext + "\""
                 "}" + _s;
             }
 
-            json += "]";
+            *json += "]";
 
-            return json;
+            return *json;
         }
 
         void resizeImage(const string &ipath, const string &opath, int w) {
             // получаем картинку
-            IplImage* image = cvLoadImage(ipath.c_str(), 1);
+            cv::Mat image = cv::imread(ipath.c_str(), cv::IMREAD_COLOR);
 
             int width = w;
-            int height = (width * image->height) / image->width;
-            IplImage *destination = cvCreateImage( cvSize(width , height), image->depth, image->nChannels);
-            cvResize(image, destination, cv::INTER_AREA);
-            cvSaveImage(opath.c_str(), destination);
-            cvReleaseImage(&image);
-            cvReleaseImage(&destination);
+            int height = (width * image.size().height) / image.size().width;
+
+            cv::Mat destination = cv::Mat::zeros(cv::Size(width,height), CV_64FC1);
+
+            cv::resize(image, destination, cv::Size(width, height), 0, 0, cv::INTER_AREA);
+
+            cv::imwrite(opath.c_str(), destination);
+
+            image.release();
+            destination.release();
         }
 
         void resizeImage(const string &ipath, const string &opath, int w, string& swidth, string& sheight) {
             // получаем картинку
-            IplImage* image = cvLoadImage(ipath.c_str(), 1);
+
+            cv::Mat image = cv::imread(ipath.c_str(), cv::IMREAD_COLOR);
 
             int width = w;
-            int height = (width * image->height) / image->width;
-            IplImage *destination = cvCreateImage( cvSize(width , height), image->depth, image->nChannels);
-            cvResize(image, destination, cv::INTER_AREA);
-            cvSaveImage(opath.c_str(), destination);
-            cvReleaseImage(&image);
-            cvReleaseImage(&destination);
+            int height = (width * image.size().height) / image.size().width;
+
+            cv::Mat destination = cv::Mat::zeros(cv::Size(width,height), CV_64FC1);
+
+            cv::resize(image, destination, cv::Size(width, height), 0, 0, cv::INTER_AREA);
+
+            cv::imwrite(opath.c_str(), destination);
+
+            image.release();
+            destination.release();
 
             swidth = to_string(width);
             sheight = to_string(height);
         }
 
-        string run(map<const char*, const char*, cmp_str>* parms) {
-            string method = setvalc(parms, "REQUEST_METHOD");
+        string& run(map<const char*, const char*>& parms) {
+            string method = getValueFromMap(parms, "REQUEST_METHOD");
 
             if(method != "POST")
-                return "{\"status\":\"0\"}";
+                return *(new string("{\"status\":\"0\"}"));
 
-            map<string, string> COOKIE = parseCookie(setvalc(parms, "HTTP_COOKIE"));
+            map<string, string> COOKIE = parseCookie(getValueFromMap(parms, "HTTP_COOKIE"));
 
             string user_id = setval(&COOKIE, "id");
 
             if( strspn( user_id.c_str(), "0123456789" ) != user_id.size() )
-                return "";
+                return *(new string);
 
             string user_token = setval(&COOKIE, "token");
 
             if( strspn( user_token.c_str(), "0123456789abcdefghijklmnopqrstuvwxyz" ) != user_token.size() )
-                return "";
+                return *(new string);
 
             UploadImageModel model;
             User user;
@@ -303,15 +311,15 @@ class UploadImageController: public Controller {
             if(user_id.size() > 0 && user_token.size() > 0)
                 user = model.getDataUser(user_id, user_token);
             else
-                return "{\"status\":\"0\"}";
+                return *(new string("{\"status\":\"0\"}"));
 
             if(!hasRight(user.role, "uploadImage"))
-                return "{\"status\":\"0\"}";
+                return *(new string("{\"status\":\"0\"}"));
 
-            string ajax_request = setvalc(parms, "HTTP_AJAX_REQUEST");
+            string ajax_request = getValueFromMap(parms, "HTTP_AJAX_REQUEST");
 
             if(ajax_request.size() > 0 && ajax_request == "xmlhttprequest") {
-                return "{\"status\":\"1\"}";
+                return *(new string("{\"status\":\"1\"}"));
             }
 
 //            addHeader("Content-Type:application/json; charset=UTF-8");
